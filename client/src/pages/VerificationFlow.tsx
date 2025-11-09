@@ -7,12 +7,12 @@ import SelfieCapture from "@/components/SelfieCapture";
 import VerificationTimeline from "@/components/VerificationTimeline";
 import RiskScoreDisplay from "@/components/RiskScoreDisplay";
 import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 
 export default function VerificationFlow() {
   const [currentStep, setCurrentStep] = useState(0);
   const [verificationResult, setVerificationResult] = useState<any>(null);
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
 
   const steps = [
     { title: "Upload Document", component: "upload" },
@@ -201,7 +201,7 @@ export default function VerificationFlow() {
                         Download Report
                       </Button>
                     )}
-                    <Button onClick={() => navigate('/')} data-testid="button-view-dashboard">
+                    <Button onClick={() => setLocation('/')} data-testid="button-view-dashboard">
                       {verificationResult.success ? 'View Dashboard' : 'Try Again'}
                     </Button>
                   </div>
