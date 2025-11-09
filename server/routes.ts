@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { Router } from 'express';
 import { db } from './db';
-import { verifications, users, documents } from '@db/schema';
+import { verifications, users, documents } from '@shared/schema';
 import { eq, desc } from 'drizzle-orm';
 import multer from 'multer';
 import { AIVerificationOrchestrator } from './ai';
