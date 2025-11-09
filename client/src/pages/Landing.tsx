@@ -1,10 +1,11 @@
-import Hero from "@/components/Hero";
-import FeaturesGrid from "@/components/FeaturesGrid";
-import HowItWorks from "@/components/HowItWorks";
-import SecurityTrust from "@/components/SecurityTrust";
-import CTASection from "@/components/CTASection";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import Hero from '@/components/Hero';
+import FeaturesGrid from '@/components/FeaturesGrid';
+import HowItWorks from '@/components/HowItWorks';
+import SecurityTrust from '@/components/SecurityTrust';
+import AICapabilities from '@/components/AICapabilities';
+import CTASection from '@/components/CTASection';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export default function Landing() {
   return (
@@ -19,6 +20,7 @@ export default function Landing() {
           <HowItWorks />
         </div>
         <div id="security">
+          <AICapabilities />
           <SecurityTrust />
         </div>
         <CTASection />
