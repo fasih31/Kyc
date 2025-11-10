@@ -230,7 +230,6 @@ export * from './voiceVerification';
 export * from './behavioralAnalytics';
 export * from './syntheticIdentityDetection';
 export * from './blockchainAudit';
-}
 
 // Extended orchestrator methods
 export class AIVerificationOrchestratorExtended extends AIVerificationOrchestrator {
