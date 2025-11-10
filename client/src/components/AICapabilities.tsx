@@ -7,32 +7,32 @@ export default function AICapabilities() {
     {
       icon: Brain,
       title: 'Multi-Modal AI Verification',
-      description: 'Combines document OCR, face recognition, and liveness detection using TensorFlow and advanced CV algorithms',
+      description: 'Document OCR, face, fingerprint, palm vein, and voice recognition with TensorFlow and advanced CV algorithms',
     },
     {
       icon: Eye,
-      title: 'Anti-Spoofing Detection',
-      description: 'AI-powered deepfake detection and presentation attack prevention with 99%+ accuracy',
+      title: 'Advanced Anti-Spoofing',
+      description: 'AI-powered deepfake detection, synthetic identity detection, and presentation attack prevention with 99%+ accuracy',
     },
     {
       icon: Fingerprint,
-      title: 'Biometric Authentication',
-      description: 'Support for face, fingerprint, and palm vein verification with adaptive risk scoring',
+      title: 'Multi-Biometric Authentication',
+      description: 'Face, fingerprint, palm vein, and voice verification with liveness detection and behavioral analytics',
     },
     {
       icon: Shield,
-      title: 'Fraud Prevention AI',
-      description: 'Real-time anomaly detection, synthetic identity detection, and adaptive risk scoring',
+      title: 'AI Fraud Prevention',
+      description: 'Real-time anomaly detection, synthetic identity detection, behavioral pattern analysis, and adaptive risk scoring',
     },
     {
       icon: Globe,
-      title: 'Multilingual Support',
-      description: 'OCR support for Urdu, English, Arabic and regional languages on government documents',
+      title: 'Blockchain Audit Trail',
+      description: 'Immutable verification records on blockchain with zero-knowledge proofs and real-time fraud alerts',
     },
     {
       icon: Zap,
-      title: 'Real-Time Processing',
-      description: 'Sub-second verification with blockchain audit logs and zero-knowledge proof integration',
+      title: 'Behavioral Biometrics',
+      description: 'Track typing patterns, mouse movements, navigation behavior, and device fingerprinting for continuous authentication',
     },
   ];
 
@@ -70,20 +70,20 @@ export default function AICapabilities() {
           <h3 className="font-semibold mb-3 text-center">Technology Stack Highlights</h3>
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="font-mono text-xs mb-1 text-muted-foreground">Computer Vision & OCR:</p>
-              <p>TensorFlow.js, Tesseract OCR, Sharp, Face-API.js</p>
+              <p className="font-mono text-xs mb-1 text-muted-foreground">Computer Vision & Biometrics:</p>
+              <p>TensorFlow.js, Tesseract OCR, Sharp, Face-API.js, Fingerprint Recognition, Voice Analysis</p>
             </div>
             <div>
               <p className="font-mono text-xs mb-1 text-muted-foreground">AI/ML Models:</p>
-              <p>Custom-trained fraud detection, liveness detection, risk scoring</p>
+              <p>Deepfake detection, synthetic identity detection, liveness detection, behavioral analytics, risk scoring</p>
             </div>
             <div>
-              <p className="font-mono text-xs mb-1 text-muted-foreground">Security:</p>
-              <p>Zero-knowledge proofs, blockchain audit logs, encrypted storage</p>
+              <p className="font-mono text-xs mb-1 text-muted-foreground">Security & Audit:</p>
+              <p>Blockchain audit trail, zero-knowledge proofs, fraud alerts, encrypted storage, immutable records</p>
             </div>
             <div>
-              <p className="font-mono text-xs mb-1 text-muted-foreground">Performance:</p>
-              <p>Sub-second verification, real-time processing, adaptive AI</p>
+              <p className="font-mono text-xs mb-1 text-muted-foreground">Multi-Modal Verification:</p>
+              <p>Face + Fingerprint + Voice + Palm Vein + Behavioral + Document verification</p>
             </div>
           </div>
         </div>
