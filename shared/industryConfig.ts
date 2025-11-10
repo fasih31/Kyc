@@ -1,4 +1,3 @@
-
 export interface IndustryKYCConfig {
   industry: 'BANKING' | 'FINTECH' | 'CRYPTOCURRENCY' | 'GOVERNMENT' | 'HEALTHCARE' | 'ECOMMERCE' | 'GAMING' | 'TELECOM' | 'INSURANCE' | 'CUSTOM';
   verificationLevels: {
@@ -40,6 +39,33 @@ export interface IndustryKYCConfig {
   fraudAlertSeverity: Array<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'>;
 }
 
+// Default compliance requirements, based on GOVERNMENT preset
+const DEFAULT_COMPLIANCE_REQUIREMENTS: IndustryKYCConfig['complianceRequirements'] = {
+  gdpr: true,
+  kycAml: true,
+  ccpa: true,
+  pci: false,
+  hipaa: false,
+  sox: true,
+};
+
+const DEFAULT_REQUIRED_CHECKS: IndustryKYCConfig['requiredChecks'] = {
+  documentVerification: true,
+  faceVerification: true, // Mandatory for facial verification login
+  livenessDetection: true,
+  fingerprintVerification: true,
+  palmVeinVerification: true,
+  voiceVerification: true,
+  behavioralAnalytics: true,
+  syntheticIdentityDetection: true,
+  blockchainAudit: true,
+  amlScreening: true,
+  sanctionsScreening: true,
+  pepScreening: true,
+  creditCheck: false,
+  addressVerification: true,
+};
+
 export const INDUSTRY_PRESETS: Record<string, Partial<IndustryKYCConfig>> = {
   BANKING: {
     industry: 'BANKING',
@@ -69,24 +95,9 @@ export const INDUSTRY_PRESETS: Record<string, Partial<IndustryKYCConfig>> = {
   GOVERNMENT: {
     industry: 'GOVERNMENT',
     verificationLevels: { basic: true, enhanced: true, superior: true },
-    requiredChecks: {
-      documentVerification: true,
-      faceVerification: true,
-      livenessDetection: true,
-      fingerprintVerification: true,
-      palmVeinVerification: true,
-      voiceVerification: true,
-      behavioralAnalytics: true,
-      syntheticIdentityDetection: true,
-      blockchainAudit: true,
-      amlScreening: true,
-      sanctionsScreening: true,
-      pepScreening: true,
-      creditCheck: false,
-      addressVerification: true,
-    },
+    requiredChecks: DEFAULT_REQUIRED_CHECKS,
     riskThresholds: { autoApprove: 95, manualReview: 80, autoReject: 60 },
-    complianceRequirements: { gdpr: true, kycAml: true, ccpa: true, pci: false, hipaa: false, sox: true },
+    complianceRequirements: DEFAULT_COMPLIANCE_REQUIREMENTS,
     dataRetentionDays: 3650,
     reVerificationPeriodDays: 180,
     fraudAlertSeverity: ['MEDIUM', 'HIGH', 'CRITICAL'],
@@ -146,7 +157,7 @@ export const INDUSTRY_PRESETS: Record<string, Partial<IndustryKYCConfig>> = {
     verificationLevels: { basic: true, enhanced: false, superior: false },
     requiredChecks: {
       documentVerification: false,
-      faceVerification: false,
+      faceVerification: false, // Face verification is not required for e-commerce based on this preset
       livenessDetection: false,
       fingerprintVerification: false,
       palmVeinVerification: false,
@@ -193,7 +204,25 @@ export const INDUSTRY_PRESETS: Record<string, Partial<IndustryKYCConfig>> = {
   },
 };
 
+// Function to get industry configuration, ensuring government-level compliance for all
 export function getIndustryConfig(industry: string): IndustryKYCConfig {
   const preset = INDUSTRY_PRESETS[industry] || INDUSTRY_PRESETS.ECOMMERCE;
-  return preset as IndustryKYCConfig;
+  // Apply government-level compliance to all presets
+  const governmentPreset = INDUSTRY_PRESETS.GOVERNMENT;
+  return {
+    ...preset,
+    complianceRequirements: governmentPreset.complianceRequirements,
+    requiredChecks: {
+        ...preset.requiredChecks,
+        faceVerification: true, // Ensure face verification is always true for login
+        livenessDetection: true, // Ensure liveness detection is always true
+    },
+    dataRetentionDays: governmentPreset.dataRetentionDays,
+    reVerificationPeriodDays: governmentPreset.reVerificationPeriodDays,
+    fraudAlertSeverity: governmentPreset.fraudAlertSeverity,
+  } as IndustryKYCConfig;
 }
+
+// Note: The login logic (mobile OTP, facial verification, no email) is not present in this code.
+// This code only defines the KYC configurations and industry presets.
+// Actual login implementation would require separate logic in authentication modules.

@@ -21,6 +21,9 @@ const privacyService = new PrivacyService();
 const apiService = new APIIntegrationService();
 const monitoringService = new MonitoringService();
 const complianceService = new ComplianceService();
+
+import { AuthService } from './services/authService';
+const authService = new AuthService();
 const orgService = new OrganizationService();
 
 // Initialize AI on startup
@@ -32,6 +35,99 @@ setInterval(() => {
 }, 24 * 60 * 60 * 1000); // Daily check
 
 export const router = Router();
+
+// Authentication routes
+router.post('/auth/send-otp', async (req, res) => {
+  try {
+    const { mobileNumber } = req.body;
+    
+    if (!mobileNumber) {
+      return res.status(400).json({ message: 'Mobile number is required' });
+    }
+
+    const result = await authService.sendOTP(mobileNumber);
+    res.json(result);
+  } catch (error) {
+    console.error('Send OTP error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.post('/auth/verify-otp', async (req, res) => {
+  try {
+    const { mobileNumber, otp } = req.body;
+    
+    if (!mobileNumber || !otp) {
+      return res.status(400).json({ message: 'Mobile number and OTP are required' });
+    }
+
+    const result = await authService.verifyOTP(mobileNumber, otp);
+    
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(401).json({ message: 'Invalid or expired OTP' });
+    }
+  } catch (error) {
+    console.error('Verify OTP error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.post('/auth/setup-face', upload.single('face'), async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const faceFile = req.file;
+
+    if (!userId || !faceFile) {
+      return res.status(400).json({ message: 'User ID and face image are required' });
+    }
+
+    const result = await authService.setupFaceVerification(userId, faceFile.buffer);
+    res.json(result);
+  } catch (error) {
+    console.error('Setup face error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.post('/auth/verify-face', upload.single('face'), async (req, res) => {
+  try {
+    const { token } = req.body;
+    const faceFile = req.file;
+
+    if (!token || !faceFile) {
+      return res.status(400).json({ message: 'Token and face image are required' });
+    }
+
+    const result = await authService.verifyFaceLogin(token, faceFile.buffer);
+    
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(401).json({ message: result.message });
+    }
+  } catch (error) {
+    console.error('Verify face error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.post('/auth/validate-session', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: 'Token is required' });
+    }
+
+    const result = await authService.validateSession(token);
+    res.json(result);
+  } catch (error) {
+    console.error('Validate session error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 router.post('/verify-document', upload.fields([{ name: 'document' }, { name: 'selfie' }]), async (req, res) => {
   try {

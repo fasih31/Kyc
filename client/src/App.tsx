@@ -11,17 +11,18 @@ import NotFound from "@/pages/not-found";
 import PrivacySettings from "@/pages/PrivacySettings";
 import IndustrySelector from "@/pages/IndustrySelector";
 import OrganizationSettings from "@/pages/OrganizationSettings";
+import MobileLogin from "@/pages/MobileLogin";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/" component={MobileLogin} />
+      <Route path="/landing" component={Landing} />
       <Route path="/industry" component={IndustrySelector} />
       <Route path="/verify" component={VerificationFlow} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/dashboard" component={UserDashboard} />
       <Route path="/privacy" component={PrivacySettings} />
-      <Route path="/organization" component={OrganizationSettings} />
       <Route component={NotFound} />
     </Switch>
   );
