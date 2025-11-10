@@ -1,4 +1,3 @@
-
 import { DocumentVerificationAI } from './documentVerification';
 import { FaceVerificationAI } from './faceVerification';
 import { AdaptiveRiskScoringAI, RiskFactors } from './riskScoring';
@@ -137,7 +136,7 @@ export class AIVerificationOrchestrator {
       // Step 6: Record verification on blockchain
       const verificationId = this.generateVerificationId();
       const success = riskScoreResult.riskLevel === 'LOW' || riskScoreResult.riskLevel === 'MEDIUM';
-      
+
       const blockchainRecord = await this.blockchainAudit.recordVerification(
         userId,
         verificationId,
@@ -151,7 +150,7 @@ export class AIVerificationOrchestrator {
 
       // Step 7: Generate fraud alerts if necessary
       const fraudAlerts = [];
-      
+
       if (syntheticCheck.isSynthetic) {
         const alert = await this.blockchainAudit.createFraudAlert(
           userId,
