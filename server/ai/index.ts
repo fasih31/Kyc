@@ -247,16 +247,10 @@ export class AIVerificationOrchestrator {
   private generateVerificationId(): string {
     return `VER-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
-}
 
-export * from './documentVerification';
-export * from './faceVerification';
-export * from './riskScoring';
-export * from './fingerprintVerification';
-export * from './voiceVerification';
-export * from './behavioralAnalytics';
-export * from './syntheticIdentityDetection';
-export * from './blockchainAudit';
+  async verifyFingerprint(fingerprintBuffer: Buffer, storedTemplate?: Buffer) {
+    return await this.biometricAI.verifyFingerprint(fingerprintBuffer, storedTemplate);
+  }
 
   async verifyPalmVein(palmVeinBuffer: Buffer, storedTemplate?: Buffer) {
     return await this.biometricAI.verifyPalmVein(palmVeinBuffer, storedTemplate);
@@ -281,3 +275,13 @@ export * from './blockchainAudit';
   async verifyBlockchainIntegrity() {
     return await this.blockchainAudit.verifyChainIntegrity();
   }
+}
+
+export * from './documentVerification';
+export * from './faceVerification';
+export * from './riskScoring';
+export * from './fingerprintVerification';
+export * from './voiceVerification';
+export * from './behavioralAnalytics';
+export * from './syntheticIdentityDetection';
+export * from './blockchainAudit';

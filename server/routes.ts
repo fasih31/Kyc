@@ -399,6 +399,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/organization/:orgId", async (req, res) => {
+    try {
+      const org = await db.query.organizations.findFirst({
+        where: eq(organizations.id, req.params.orgId),
+      });
+      if (!org) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      res.json(org);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.put("/api/organization/:orgId/kyc-config", async (req, res) => {
+    try {
+      const { kycConfig, requestingUserRole } = req.body;
+      
+      // Check permissions
+      if (requestingUserRole !== 'super_admin' && requestingUserRole !== 'admin') {
+        return res.status(403).json({ error: "Insufficient permissions" });
+      }
+
+      const [updated] = await db.update(organizations)
+        .set({ 
+          kycConfig,
+          updatedAt: new Date()
+        })
+        .where(eq(organizations.id, req.params.orgId))
+        .returning();
+
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

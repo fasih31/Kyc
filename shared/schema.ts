@@ -25,7 +25,14 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   faceEmbedding: jsonb("face_embedding"),
   organizationId: uuid("organization_id").references(() => organizations.id),
-
+  role: text("role").notNull().default("user"),
+  verificationLevel: integer("verification_level").notNull().default(0),
+  trustScore: integer("trust_score").default(50),
+  isActive: boolean("is_active").notNull().default(true),
+  lastActivityAt: timestamp("last_activity_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
 
 export const otpVerifications = pgTable("otp_verifications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -46,15 +53,6 @@ export const loginSessions = pgTable("login_sessions", {
   ipAddress: text("ip_address"),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
-
-  role: text("role").notNull().default("user"), // super_admin, admin, manager, reviewer, viewer
-  verificationLevel: integer("verification_level").notNull().default(0),
-  trustScore: integer("trust_score").default(50),
-  isActive: boolean("is_active").notNull().default(true),
-  lastActivityAt: timestamp("last_activity_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const verifications = pgTable("verifications", {

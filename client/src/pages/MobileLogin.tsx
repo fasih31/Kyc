@@ -124,18 +124,43 @@ export default function MobileLogin() {
   };
 
   const captureAndVerifyFace = async () => {
-    if (!videoRef.current || !stream) return;
+    if (!videoRef.current || !stream) {
+      toast({
+        title: "Camera Error",
+        description: "Camera not ready. Please wait.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
     try {
+      // Wait for video to be ready
+      if (videoRef.current.readyState < 2) {
+        toast({
+          title: "Please Wait",
+          description: "Camera is initializing...",
+        });
+        setLoading(false);
+        return;
+      }
+
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
       const ctx = canvas.getContext('2d');
-      ctx?.drawImage(videoRef.current, 0, 0);
+      
+      if (!ctx) {
+        throw new Error("Could not get canvas context");
+      }
+      
+      ctx.drawImage(videoRef.current, 0, 0);
 
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((b) => resolve(b!), 'image/jpeg');
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((b) => {
+          if (b) resolve(b);
+          else reject(new Error("Failed to capture image"));
+        }, 'image/jpeg', 0.95);
       });
 
       const formData = new FormData();
