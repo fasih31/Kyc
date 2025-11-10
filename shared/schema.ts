@@ -3,6 +3,13 @@ import { pgTable, text, varchar, timestamp, integer, jsonb, boolean, real } from
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Verification Levels:
+// 0 - Unverified
+// 1 - Basic (Email + Phone)
+// 2 - Standard (Basic + Document)
+// 3 - Enhanced (Standard + Biometric)
+// 4 - Premium (Enhanced + Behavioral + Multi-factor)
+
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),

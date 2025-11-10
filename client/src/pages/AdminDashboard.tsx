@@ -10,6 +10,23 @@ import { Users, CheckCircle, AlertTriangle, Clock, Search, Filter } from "lucide
 
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTimeRange, setSelectedTimeRange] = useState("7d");
+  const [fraudAlerts, setFraudAlerts] = useState([
+    {
+      id: "FRAUD-001",
+      type: "Document Tampering",
+      severity: "high",
+      userName: "Suspicious User",
+      timestamp: new Date(),
+    },
+    {
+      id: "FRAUD-002",
+      type: "Expired Document",
+      severity: "medium",
+      userName: "John Doe",
+      timestamp: new Date(Date.now() - 1000 * 60 * 30),
+    },
+  ]);
 
   const mockVerifications = [
     {
@@ -102,6 +119,27 @@ export default function AdminDashboard() {
               <Filter className="w-4 h-4 mr-2" />
               Filters
             </Button>
+          </div>
+        </Card>
+
+        <Card className="p-6 mb-6 border-orange-200 bg-orange-50/50">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-orange-600" />
+            Fraud Alerts ({fraudAlerts.length})
+          </h3>
+          <div className="space-y-3">
+            {fraudAlerts.map((alert) => (
+              <div key={alert.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${alert.severity === 'high' ? 'bg-red-500' : 'bg-orange-500'}`} />
+                  <div>
+                    <p className="font-semibold text-sm">{alert.type}</p>
+                    <p className="text-xs text-muted-foreground">{alert.userName} • {alert.timestamp.toLocaleTimeString()}</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm">Investigate</Button>
+              </div>
+            ))}
           </div>
         </Card>
 

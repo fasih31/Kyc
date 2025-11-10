@@ -4,15 +4,30 @@ import { storage } from "./storage";
 import { Router } from 'express';
 import { db } from './db';
 import { verifications, users, documents } from '@shared/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, gte, lte, lt } from 'drizzle-orm';
 import multer from 'multer';
 import { AIVerificationOrchestrator } from './ai';
+import { IdentityWalletService } from './services/identityWallet';
+import { PrivacyService } from './services/privacyService';
+import { APIIntegrationService } from './services/apiIntegration';
+import { MonitoringService } from './services/monitoringService';
+import { ComplianceService } from './services/complianceService';
 
 const upload = multer({ storage: multer.memoryStorage() });
 const aiOrchestrator = new AIVerificationOrchestrator();
+const walletService = new IdentityWalletService();
+const privacyService = new PrivacyService();
+const apiService = new APIIntegrationService();
+const monitoringService = new MonitoringService();
+const complianceService = new ComplianceService();
 
 // Initialize AI on startup
 aiOrchestrator.initialize().catch(console.error);
+
+// Run monitoring tasks
+setInterval(() => {
+  monitoringService.checkDocumentExpiry().catch(console.error);
+}, 24 * 60 * 60 * 1000); // Daily check
 
 export const router = Router();
 
@@ -88,7 +103,120 @@ router.post('/liveness-check', upload.single('video'), async (req, res) => {
   }
 });
 
-// Add other AI-related routes as needed (e.g., risk scoring)
+// Privacy & Consent endpoints
+router.post('/privacy/grant-consent', async (req, res) => {
+  try {
+    const { userId, consentType, purpose, dataScope, grantedTo, expiresAt } = req.body;
+    const consent = await privacyService.grantConsent(userId, consentType, purpose, dataScope, grantedTo, expiresAt);
+    res.json(consent);
+  } catch (error) {
+    console.error('Grant consent error:', error);
+    res.status(500).json({ message: 'Error granting consent' });
+  }
+});
+
+router.post('/privacy/revoke-consent', async (req, res) => {
+  try {
+    const { userId, consentId } = req.body;
+    await privacyService.revokeConsent(userId, consentId);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Revoke consent error:', error);
+    res.status(500).json({ message: 'Error revoking consent' });
+  }
+});
+
+// Digital Wallet endpoints
+router.post('/wallet/create-credential', async (req, res) => {
+  try {
+    const { userId, credentialType, data, issuedBy, expiresAt } = req.body;
+    const credential = await walletService.createCredential(userId, credentialType, data, issuedBy, expiresAt);
+    res.json(credential);
+  } catch (error) {
+    console.error('Create credential error:', error);
+    res.status(500).json({ message: 'Error creating credential' });
+  }
+});
+
+router.get('/wallet/credentials/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const credentials = await walletService.getCredentials(userId);
+    res.json(credentials);
+  } catch (error) {
+    console.error('Get credentials error:', error);
+    res.status(500).json({ message: 'Error fetching credentials' });
+  }
+});
+
+// Monitoring & Alerts endpoints
+router.get('/monitoring/alerts/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const alerts = await monitoringService.getUnreadAlerts(userId);
+    res.json(alerts);
+  } catch (error) {
+    console.error('Get alerts error:', error);
+    res.status(500).json({ message: 'Error fetching alerts' });
+  }
+});
+
+router.post('/monitoring/detect-fraud', async (req, res) => {
+  try {
+    const { userId, verificationId, fraudType, severity, detectionMethod, confidenceScore, evidenceData } = req.body;
+    const log = await monitoringService.detectFraud(userId, verificationId, fraudType, severity, detectionMethod, confidenceScore, evidenceData);
+    res.json(log);
+  } catch (error) {
+    console.error('Fraud detection error:', error);
+    res.status(500).json({ message: 'Error detecting fraud' });
+  }
+});
+
+// API Integration endpoints
+router.post('/api/share-verification', async (req, res) => {
+  try {
+    const { userId, clientId } = req.body;
+    const hasConsent = await privacyService.checkConsent(userId, 'third_party_sharing');
+    
+    if (!hasConsent) {
+      return res.status(403).json({ message: 'User consent required' });
+    }
+
+    const data = await apiService.shareVerificationStatus(userId, clientId);
+    
+    await apiService.logAPIAccess(
+      clientId,
+      userId,
+      '/api/share-verification',
+      'POST',
+      req.body,
+      200,
+      data.trustScore,
+      req.ip || '',
+      req.headers['user-agent'] || ''
+    );
+    
+    res.json(data);
+  } catch (error) {
+    console.error('Share verification error:', error);
+    res.status(500).json({ message: 'Error sharing verification' });
+  }
+});
+
+// Compliance endpoints
+router.get('/compliance/report', async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const report = await complianceService.generateComplianceReport(
+      new Date(startDate as string),
+      new Date(endDate as string)
+    );
+    res.json(report);
+  } catch (error) {
+    console.error('Compliance report error:', error);
+    res.status(500).json({ message: 'Error generating report' });
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // put application routes here
