@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, jsonb, boolean, real } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, jsonb, boolean, real, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -10,11 +10,21 @@ import { z } from "zod";
 // 3 - Enhanced (Standard + Biometric)
 // 4 - Premium (Enhanced + Behavioral + Multi-factor)
 
+export const organizations = pgTable("organizations", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  industry: text("industry").notNull(),
+  kycConfig: jsonb("kyc_config"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
-  role: text("role").notNull().default("user"),
+  organizationId: uuid("organization_id").references(() => organizations.id),
+  role: text("role").notNull().default("user"), // super_admin, admin, manager, reviewer, viewer
   verificationLevel: integer("verification_level").notNull().default(0),
   trustScore: integer("trust_score").default(50),
   isActive: boolean("is_active").notNull().default(true),
@@ -205,6 +215,12 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
+export const insertOrganizationSchema = createInsertSchema(organizations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertVerificationSchema = createInsertSchema(verifications).omit({
   id: true,
   createdAt: true,
@@ -223,6 +239,9 @@ export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+export type Organization = typeof organizations.$inferSelect;
 
 export type InsertVerification = z.infer<typeof insertVerificationSchema>;
 export type Verification = typeof verifications.$inferSelect;

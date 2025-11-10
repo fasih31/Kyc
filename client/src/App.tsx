@@ -10,6 +10,7 @@ import VerificationFlow from "@/pages/VerificationFlow";
 import NotFound from "@/pages/not-found";
 import PrivacySettings from "@/pages/PrivacySettings";
 import IndustrySelector from "@/pages/IndustrySelector";
+import OrganizationSettings from "@/pages/OrganizationSettings";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/dashboard" component={UserDashboard} />
       <Route path="/privacy" component={PrivacySettings} />
+      <Route path="/organization" component={OrganizationSettings} />
       <Route component={NotFound} />
     </Switch>
   );

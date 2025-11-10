@@ -12,6 +12,7 @@ import { PrivacyService } from './services/privacyService';
 import { APIIntegrationService } from './services/apiIntegration';
 import { MonitoringService } from './services/monitoringService';
 import { ComplianceService } from './services/complianceService';
+import { OrganizationService } from "./services/organizationService";
 
 const upload = multer({ storage: multer.memoryStorage() });
 const aiOrchestrator = new AIVerificationOrchestrator();
@@ -20,6 +21,7 @@ const privacyService = new PrivacyService();
 const apiService = new APIIntegrationService();
 const monitoringService = new MonitoringService();
 const complianceService = new ComplianceService();
+const orgService = new OrganizationService();
 
 // Initialize AI on startup
 aiOrchestrator.initialize().catch(console.error);
@@ -177,13 +179,13 @@ router.post('/api/share-verification', async (req, res) => {
   try {
     const { userId, clientId } = req.body;
     const hasConsent = await privacyService.checkConsent(userId, 'third_party_sharing');
-    
+
     if (!hasConsent) {
       return res.status(403).json({ message: 'User consent required' });
     }
 
     const data = await apiService.shareVerificationStatus(userId, clientId);
-    
+
     await apiService.logAPIAccess(
       clientId,
       userId,
@@ -195,7 +197,7 @@ router.post('/api/share-verification', async (req, res) => {
       req.ip || '',
       req.headers['user-agent'] || ''
     );
-    
+
     res.json(data);
   } catch (error) {
     console.error('Share verification error:', error);
@@ -226,6 +228,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
 
   app.use('/api', router); // Mount the AI verification router
+
+  // AI capabilities endpoint
+  app.get("/api/ai-capabilities", async (req, res) => {
+    try {
+      res.json({
+        faceVerification: true,
+        documentVerification: true,
+        riskScoring: true,
+        fingerprintVerification: true,
+        voiceVerification: true,
+        behavioralAnalytics: true,
+        syntheticIdentityDetection: true,
+        blockchainAudit: true
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Organization management endpoints
+  app.post("/api/organization", async (req, res) => {
+    try {
+      const { name, industry, kycConfig } = req.body;
+      const org = await orgService.createOrganization(name, industry, kycConfig);
+      res.json(org);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/organization/:orgId/members", async (req, res) => {
+    try {
+      const members = await orgService.getOrganizationMembers(req.params.orgId);
+      res.json(members);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.put("/api/organization/member/:userId/role", async (req, res) => {
+    try {
+      const { newRole, requestingUserRole } = req.body;
+      const user = await orgService.updateMemberRole(
+        parseInt(req.params.userId),
+        newRole,
+        requestingUserRole
+      );
+      res.json(user);
+    } catch (error: any) {
+      res.status(403).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/organization/member/:userId", async (req, res) => {
+    try {
+      const { requestingUserRole } = req.body;
+      await orgService.removeMember(parseInt(req.params.userId), requestingUserRole);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(403).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/organization/check-permission/:userId/:permission", async (req, res) => {
+    try {
+      const hasAccess = await orgService.checkPermission(
+        parseInt(req.params.userId),
+        req.params.permission as any
+      );
+      res.json({ hasPermission: hasAccess });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 
   const httpServer = createServer(app);
 
