@@ -29,7 +29,7 @@ export default function Hero() {
         </p>
         
         <div className="flex flex-wrap gap-4 justify-center mb-16">
-          <Button size="lg" className="text-base h-12 px-8" data-testid="button-start-verification">
+          <Button size="lg" className="text-base h-12 px-8" onClick={() => window.location.href = '/verify'} data-testid="button-start-verification">
             Start Verification
             <Zap className="ml-2 w-4 h-4" />
           </Button>

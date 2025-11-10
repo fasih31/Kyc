@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Shield, Menu } from "lucide-react";
+import { Shield, Menu, LayoutDashboard } from "lucide-react";
 import { Link } from "wouter";
 
 interface HeaderProps {
@@ -36,6 +36,10 @@ export default function Header({ variant = 'landing', onMenuClick }: HeaderProps
           </nav>
         ) : (
           <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" onClick={() => window.location.href = '/dashboard'} data-testid="button-dashboard">
+              <LayoutDashboard className="w-4 h-4 mr-2" />
+              Dashboard
+            </Button>
             <Button variant="ghost" size="icon" onClick={onMenuClick} className="md:hidden" data-testid="button-menu">
               <Menu className="w-5 h-5" />
             </Button>

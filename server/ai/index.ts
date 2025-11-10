@@ -6,6 +6,7 @@ import { VoiceVerificationAI } from './voiceVerification';
 import { BehavioralAnalyticsAI, BehavioralPattern } from './behavioralAnalytics';
 import { SyntheticIdentityDetectionAI } from './syntheticIdentityDetection';
 import { BlockchainAuditTrail } from './blockchainAudit';
+import { IndustryKYCConfig, getIndustryConfig } from '@shared/industryConfig';
 
 export interface CompleteVerificationResult {
   success: boolean;
@@ -58,21 +59,30 @@ export class AIVerificationOrchestrator {
     fingerprintImage?: Buffer,
     palmVeinImage?: Buffer,
     voiceAudio?: Buffer,
-    behavioralData?: BehavioralPattern
+    behavioralData?: BehavioralPattern,
+    industryConfig?: IndustryKYCConfig
   ): Promise<CompleteVerificationResult> {
+    const config = industryConfig || getIndustryConfig('ECOMMERCE');
     try {
-      // Step 1: Document verification
-      const documentAnalysis = await this.documentAI.analyzeDocument(documentImage);
+      // Step 1: Document verification (if required by industry)
+      let documentAnalysis = null;
+      if (config.requiredChecks.documentVerification) {
+        documentAnalysis = await this.documentAI.analyzeDocument(documentImage);
+      }
 
-      // Step 1a: Synthetic identity detection
-      const syntheticCheck = await this.syntheticDetectionAI.detectSyntheticIdentity(
-        documentAnalysis.extractedData,
-        selfieImage,
-        behavioralData
-      );
+      // Step 1a: Synthetic identity detection (if required)
+      let syntheticCheck = null;
+      if (config.requiredChecks.syntheticIdentityDetection && documentAnalysis) {
+        syntheticCheck = await this.syntheticDetectionAI.detectSyntheticIdentity(
+          documentAnalysis.extractedData,
+          selfieImage,
+          behavioralData
+        );
+      }
 
-      // Step 2: Face verification (if document face is available)
+      // Step 2: Face verification (if required by industry)
       let faceAnalysis = null;
+      if (config.requiredChecks.faceVerification) {
       if (documentFaceImage) {
         faceAnalysis = await this.faceAI.verifyFace(selfieImage, documentFaceImage);
       } else {
@@ -87,25 +97,25 @@ export class AIVerificationOrchestrator {
         };
       }
 
-      // Step 3: Additional biometric verifications
+      // Step 3: Additional biometric verifications (if required and provided)
       let fingerprintAnalysis = null;
-      if (fingerprintImage) {
+      if (config.requiredChecks.fingerprintVerification && fingerprintImage) {
         fingerprintAnalysis = await this.biometricAI.verifyFingerprint(fingerprintImage);
       }
 
       let palmVeinAnalysis = null;
-      if (palmVeinImage) {
+      if (config.requiredChecks.palmVeinVerification && palmVeinImage) {
         palmVeinAnalysis = await this.biometricAI.verifyPalmVein(palmVeinImage);
       }
 
       let voiceAnalysis = null;
-      if (voiceAudio) {
+      if (config.requiredChecks.voiceVerification && voiceAudio) {
         voiceAnalysis = await this.voiceAI.verifyVoice(voiceAudio);
       }
 
-      // Step 4: Behavioral analytics
+      // Step 4: Behavioral analytics (if required)
       let behavioralAnalysis = null;
-      if (behavioralData) {
+      if (config.requiredChecks.behavioralAnalytics && behavioralData) {
         behavioralAnalysis = await this.behavioralAI.analyzeBehavior(behavioralData);
       }
 
@@ -133,25 +143,42 @@ export class AIVerificationOrchestrator {
 
       const riskScoreResult = this.riskAI.calculateRiskScore(riskFactors);
 
-      // Step 6: Record verification on blockchain
+      // Apply industry-specific risk thresholds
       const verificationId = this.generateVerificationId();
-      const success = riskScoreResult.riskLevel === 'LOW' || riskScoreResult.riskLevel === 'MEDIUM';
+      let success = false;
+      let outcome = 'REJECTED';
+      
+      if (riskScoreResult.trustScore >= config.riskThresholds.autoApprove) {
+        success = true;
+        outcome = 'APPROVED';
+      } else if (riskScoreResult.trustScore >= config.riskThresholds.manualReview) {
+        success = false;
+        outcome = 'MANUAL_REVIEW';
+      } else {
+        success = false;
+        outcome = 'REJECTED';
+      }
 
-      const blockchainRecord = await this.blockchainAudit.recordVerification(
-        userId,
-        verificationId,
-        {
-          documentVerified: documentAnalysis.isValid,
-          faceVerified: faceAnalysis.isMatch,
-          riskScore: riskScoreResult.trustScore,
-          outcome: success ? 'APPROVED' : riskScoreResult.riskLevel === 'HIGH' ? 'MANUAL_REVIEW' : 'REJECTED',
-        }
-      );
+      // Step 6: Record verification on blockchain (if required)
+      let blockchainRecord = null;
+      if (config.requiredChecks.blockchainAudit) {
 
-      // Step 7: Generate fraud alerts if necessary
+      blockchainRecord = await this.blockchainAudit.recordVerification(
+          userId,
+          verificationId,
+          {
+            documentVerified: documentAnalysis?.isValid || false,
+            faceVerified: faceAnalysis?.isMatch || false,
+            riskScore: riskScoreResult.trustScore,
+            outcome,
+          }
+        );
+      }
+
+      // Step 7: Generate fraud alerts if necessary (based on industry severity config)
       const fraudAlerts = [];
 
-      if (syntheticCheck.isSynthetic) {
+      if (syntheticCheck && syntheticCheck.isSynthetic && config.fraudAlertSeverity.includes('CRITICAL')) {
         const alert = await this.blockchainAudit.createFraudAlert(
           userId,
           'SYNTHETIC_IDENTITY',
@@ -162,7 +189,7 @@ export class AIVerificationOrchestrator {
         fraudAlerts.push(alert);
       }
 
-      if (documentAnalysis.securityFeatures.tamperedDetected) {
+      if (documentAnalysis && documentAnalysis.securityFeatures.tamperedDetected && config.fraudAlertSeverity.includes('HIGH')) {
         const alert = await this.blockchainAudit.createFraudAlert(
           userId,
           'DOCUMENT_TAMPERING',
@@ -173,7 +200,7 @@ export class AIVerificationOrchestrator {
         fraudAlerts.push(alert);
       }
 
-      if (faceAnalysis.livenessScore < 50) {
+      if (faceAnalysis && faceAnalysis.livenessScore < 50 && config.fraudAlertSeverity.includes('HIGH')) {
         const alert = await this.blockchainAudit.createFraudAlert(
           userId,
           'LIVENESS_FAILURE',

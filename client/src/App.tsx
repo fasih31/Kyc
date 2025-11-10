@@ -8,14 +8,18 @@ import UserDashboard from "@/pages/UserDashboard";
 import AdminDashboard from "@/pages/AdminDashboard";
 import VerificationFlow from "@/pages/VerificationFlow";
 import NotFound from "@/pages/not-found";
+import PrivacySettings from "@/pages/PrivacySettings";
+import IndustrySelector from "@/pages/IndustrySelector";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
-      <Route path="/user-dashboard" component={UserDashboard} />
-      <Route path="/admin-dashboard" component={AdminDashboard} />
+      <Route path="/industry" component={IndustrySelector} />
       <Route path="/verify" component={VerificationFlow} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/dashboard" component={UserDashboard} />
+      <Route path="/privacy" component={PrivacySettings} />
       <Route component={NotFound} />
     </Switch>
   );
