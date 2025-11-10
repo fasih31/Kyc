@@ -230,9 +230,10 @@ export * from './voiceVerification';
 export * from './behavioralAnalytics';
 export * from './syntheticIdentityDetection';
 export * from './blockchainAudit';
+}
 
-
-
+// Extended orchestrator methods
+export class AIVerificationOrchestratorExtended extends AIVerificationOrchestrator {
   async verifyFingerprint(fingerprintBuffer: Buffer, storedTemplate?: Buffer) {
     return await this.biometricAI.verifyFingerprint(fingerprintBuffer, storedTemplate);
   }
@@ -260,3 +261,4 @@ export * from './blockchainAudit';
   async verifyBlockchainIntegrity() {
     return await this.blockchainAudit.verifyChainIntegrity();
   }
+}
